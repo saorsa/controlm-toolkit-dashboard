@@ -1,0 +1,23 @@
+<div class="p-3">
+  <div *ngIf="loading">
+    Loading Control-M servers, please wait...
+  </div>
+  <div *ngIf="error" class="alert alert-danger">
+    An error has occurred.
+  </div>
+  <div *ngIf="servers?.length">
+    <div class="pb-3">
+      {{headline}}
+    </div>
+    <div class="list-group">
+      <a *ngFor="let s of servers" class="list-group-item"
+         (click)="serverSelected.emit(s)"
+         [ngClass]="{ 'active': isActiveServer(s), 'list-group-item-action': !isActiveServer(s)}"
+         [routerLink]="['/', s]"
+         [placement]="'bottom-start'"
+         [ngbTooltip]="isActiveServer(s) ? 'Currently active server' : 'Click to select server'">
+        {{s}}
+      </a>
+    </div>
+  </div>
+</div>
