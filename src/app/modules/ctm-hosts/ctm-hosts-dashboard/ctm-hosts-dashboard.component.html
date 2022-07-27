@@ -7,13 +7,30 @@
   </div>
   <div *ngIf="stats">
     <app-smart-table
-      [columnVisibilityOverrides]="{ 'disabled' : 'hidden' }"
-      [columnLabelOverrides]="{ 'node': 'Host Name' }"
+      [columnVisibilityOverrides]="{ 'disabled' : 'visible' }"
+      [columnLabelOverrides]="{
+        'node': 'Host Name',
+        'activeCount': 'Active #',
+        'active': 'Active Folders',
+        'disabledCount': 'Disabled #',
+        'disabled': 'Disabled Folders'}"
+      [columnOrderIndexOverrides]="{
+        'node': 1,
+        'activeCount': 2,
+        'active': 4,
+        'disabledCount': 3,
+        'disabled': 5}"
+      [columnCssOverrides]="{
+        'node': '',
+        'activeCount': 'text-right',
+        'active': 'text-right',
+        'disabledCount': '',
+        'disabled': ''}"
       [columnTemplateOverrides]="{ 'node' : cellNode }"
       [items]="stats"></app-smart-table>
   </div>
 </div>
 
 <ng-template #cellNode let-dataItem=dataItem>
-  <a [routerLink]="[dataItem]">{{dataItem}}</a>
+  <a class="btn btn-link" [routerLink]="[dataItem]">{{dataItem}}</a>
 </ng-template>

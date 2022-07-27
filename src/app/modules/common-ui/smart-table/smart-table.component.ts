@@ -15,6 +15,8 @@ export interface SmartTableColumnOptions {
   isReference?: boolean,
   type?: string,
   templateRef?: TemplateRef<SmartTableCellContext>,
+  cssClass?: string,
+  orderIndex?: number
 }
 
 export const ValueTypes = [
@@ -31,11 +33,14 @@ export const RefTypes = [
 
 export interface SmartTableOptions {
   columns: SmartTableColumnOptions[],
+  hideHeader?: boolean
 }
 
 export function BuildTableOptions(
   item: any,
-  columnVisibilityOverrides: { [columnName in string]:  'hidden' | 'visible' } = {}) {
+  columnVisibilityOverrides: { [columnName in string]:  'hidden' | 'visible' } = {},
+  columnCssOverrides: { [columnName in string]:  string } = {},
+  columnOrderIndexOverrides: { [columnName in string]:  number } = {}) {
   if (item) {
     const props = Object.getOwnPropertyNames(item)
       .filter(p => columnVisibilityOverrides[p] != 'hidden');
@@ -48,8 +53,16 @@ export function BuildTableOptions(
         searchable: searchable,
         isReference: reference,
         type: Array.isArray(itemValue) ? 'array' : typeof itemValue,
+        cssClass: columnCssOverrides[prop],
+        orderIndex: columnOrderIndexOverrides[prop]
       }
-    });
+    })
+      .sort((a, b) => {
+        if (!a.orderIndex && !b.orderIndex) return 0;
+        if (!a.orderIndex) return 1;
+        if (!b.orderIndex) return -1;
+        return a.orderIndex - b.orderIndex;
+      });
     return {
       columns: columns
     };
@@ -70,6 +83,8 @@ export class SmartTableComponent implements OnInit, OnChanges {
   @Input() columnTemplateOverrides: { [columnName in string]: TemplateRef<SmartTableCellContext>} = {};
   @Input() columnVisibilityOverrides: { [columnName in string]:  'hidden' | 'visible' } = {};
   @Input() columnLabelOverrides: { [columnName in string]:  string } = {};
+  @Input() columnCssOverrides: { [columnName in string]:  string } = {};
+  @Input() columnOrderIndexOverrides: { [columnName in string]:  number } = {};
 
   displayItems: any[] = [];
   displayOptions: SmartTableOptions = { columns: [] };
@@ -143,7 +158,9 @@ export class SmartTableComponent implements OnInit, OnChanges {
       if (items.length) {
         this.displayOptions = BuildTableOptions(
           items[0],
-          this.columnVisibilityOverrides);
+          this.columnVisibilityOverrides,
+          this.columnCssOverrides,
+          this.columnOrderIndexOverrides);
       }
     }
     this.items = items;

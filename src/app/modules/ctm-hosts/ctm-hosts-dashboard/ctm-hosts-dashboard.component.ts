@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ApiService, AppService, CtmNodeStat} from "../../../services";
 import {CtmNodeBasicInfo} from "../../../services/model/ctm-server.model";
+import {Subscription} from "rxjs";
 
 @Component({
   selector: 'app-ctm-hosts-dashboard',
@@ -12,6 +13,7 @@ export class CtmHostsDashboardComponent implements OnInit {
   stats: CtmNodeStat[] | null = null;
   error: any = null;
   loading = false;
+  serverChangeSubscription?: Subscription;
 
   constructor(
     private readonly api: ApiService,
@@ -20,9 +22,13 @@ export class CtmHostsDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadNodeStats(this.app.selectedServer);
-    this.app.serverChange.subscribe(server => {
+    this.serverChangeSubscription = this.app.serverChange.subscribe(server => {
       this.loadNodeStats(server);
     })
+  }
+
+  ngOnDestroy(): void {
+    this.serverChangeSubscription?.unsubscribe();
   }
 
   protected loadNodeStats(server: string | undefined): void {

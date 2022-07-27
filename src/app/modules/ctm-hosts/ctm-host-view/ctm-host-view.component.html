@@ -1,1 +1,45 @@
-<p>ctm-host-view works!</p>
+<div class="p-3">
+  <div *ngIf="loading">
+    Loading Control-M servers, please wait...
+  </div>
+  <div *ngIf="error" class="alert alert-danger">
+    An error has occurred. {{error}}
+  </div>
+  <div *ngIf="stats">
+    <h6>{{selectedHost}}</h6>
+    <div>
+      <ul ngbNav #nav="ngbNav" [(activeId)]="active" (navChange)="onNavChange($event)" class="nav-tabs">
+        <li [ngbNavItem]="1">
+          <a ngbNavLink>Folders</a>
+        </li>
+        <li [ngbNavItem]="2">
+          <a ngbNavLink>Jobs</a>
+        </li>
+      </ul>
+      <div *ngIf="active == 1">
+        <app-smart-table
+          [columnVisibilityOverrides]="{ 'index': 'hidden'}"
+          [columnTemplateOverrides]="{ 'folder': cellFolder }"
+          [items]="folderKeys"></app-smart-table>
+      </div>
+      <div *ngIf="active == 2">
+        <app-smart-table
+          [columnVisibilityOverrides]="{ 'index': 'hidden'}"
+          [columnTemplateOverrides]="{ 'job': cellJob }"
+          [items]="jobKeys"></app-smart-table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #cellFolder let-dataItem=dataItem>
+  <a class="btn btn-link" [routerLink]="['/servers', selectedServer, 'folders', dataItem]">{{dataItem}}</a>
+</ng-template>
+
+<ng-template #cellJob let-dataItem=dataItem>
+  <a class="btn btn-link" [routerLink]="['/servers', selectedServer, 'folders', dataItem.split('/')[0]]">{{dataItem.split('/')[0]}}</a>
+    /
+  <a class="btn btn-link" [routerLink]="[
+  '/servers', selectedServer, 'folders', dataItem.split('/')[0],
+  'jobs', dataItem.split('/')[1]]">{{dataItem.split('/')[1]}}</a>
+</ng-template>

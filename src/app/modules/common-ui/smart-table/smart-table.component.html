@@ -1,13 +1,15 @@
 <div *ngIf="displayOptions && displayItems">
   <table class="table table-striped">
-    <thead>
+    <thead *ngIf="!displayOptions.hideHeader">
     <tr>
-      <th *ngFor="let c of displayOptions.columns">{{getColumnHeader(c.columnName)}}</th>
+      <th *ngFor="let c of displayOptions.columns"
+        [ngClass]="c.cssClass || columnCssOverrides[c.columnName] || []">{{getColumnHeader(c.columnName)}}</th>
     </tr>
     </thead>
     <tbody>
     <tr *ngFor="let i of displayItems">
-      <td *ngFor="let c of displayOptions.columns">
+      <td *ngFor="let c of displayOptions.columns"
+          [ngClass]="c.cssClass || columnCssOverrides[c.columnName] || []">
         <div *ngIf="columnTemplateOverrides[c.columnName]">
           <ng-container
             *ngTemplateOutlet="columnTemplateOverrides[c.columnName]; context: { columnDef: c, dataItem: i[c.columnName] }">
@@ -15,7 +17,7 @@
         </div>
         <div *ngIf="!columnTemplateOverrides[c.columnName]">
           <ng-container
-            *ngTemplateOutlet="c.templateRef ?? valueTypeColumn; context: { columnDef: c, dataItem: i[c.columnName] }">
+            *ngTemplateOutlet="c.templateRef ?? defaultCellTemplate; context: { columnDef: c, dataItem: i[c.columnName] }">
           </ng-container>
         </div>
       </td>
@@ -40,29 +42,36 @@
 </div>
 
 
-<ng-template #valueTypeColumn let-columnDef="columnDef" let-dataItem="dataItem">
+<ng-template #defaultCellTemplate let-columnDef="columnDef" let-dataItem="dataItem">
   <div *ngIf="columnDef && !columnDef['isReference']" class="cell-item" [ngClass]="columnDef['type']">
     {{dataItem}}
   </div>
   <div *ngIf="columnDef && columnDef['isReference']" class="cell-item">
-    <button class="btn btn-link" (click)="openReferenceDetails(referenceTypeColumn, columnDef, dataItem)">
-      {{columnDef.type}}
+    <button class="btn btn-link btn-simple"
+            (click)="openReferenceDetails(referenceTypeDialogTemplate, columnDef, dataItem)">
+      <span [ngSwitch]="columnDef.type">
+        <span *ngSwitchCase="'array'">Array</span>
+        <span *ngSwitchCase="'object'">Object</span>
+        <span *ngSwitchCase="'function'">Function</span>
+      </span>
     </button>
   </div>
 </ng-template>
 
-<ng-template #referenceTypeColumn>
-  <div *ngIf="columnTemplateOverrides[dialogColumnDef!.columnName]">
-    <ng-container
-      *ngTemplateOutlet="columnTemplateOverrides[dialogColumnDef!.columnName]; context: { columnDef: dialogColumnDef!, dataItem: dialogDataItem }">
-    </ng-container>
-  </div>
-  <div *ngIf="!columnTemplateOverrides[dialogColumnDef!.columnName]">
-    <nav class="navbar navbar-light bg-primary text-light">
-      <b class="ps-3 pe-3">Preview {{dialogColumnDef!.type}}</b>
-    </nav>
-    <div class="p-3">
-      {{dialogDataItem | json }}
+<ng-template #referenceTypeDialogTemplate>
+  <div class="">
+    <div *ngIf="columnTemplateOverrides[dialogColumnDef!.columnName]">
+      <ng-container
+        *ngTemplateOutlet="columnTemplateOverrides[dialogColumnDef!.columnName]; context: { columnDef: dialogColumnDef!, dataItem: dialogDataItem }">
+      </ng-container>
+    </div>
+    <div *ngIf="!columnTemplateOverrides[dialogColumnDef!.columnName]">
+      <nav class="navbar navbar-light bg-primary text-light">
+        <b class="ps-3 pe-3">Preview {{getColumnHeader(dialogColumnDef!.columnName)}} ({{dialogColumnDef!.type}})</b>
+      </nav>
+      <div class="p-3 dialog-container">
+        <pre *ngIf="dialogDataItem">{{dialogDataItem | json }}</pre>
+      </div>
     </div>
   </div>
 </ng-template>

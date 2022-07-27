@@ -17,3 +17,8 @@ export interface CtmNodeStat {
 export interface CtmNodeBasicInfo extends CtmNodeStat {
   node: string;
 }
+
+export interface CtmNodeInfo {
+  folders: string[],
+  jobs: string[],
+}
