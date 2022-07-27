@@ -1,6 +1,7 @@
 import {
   Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef
 } from '@angular/core';
+import {NgbModal, NgbModalRef} from "@ng-bootstrap/ng-bootstrap";
 
 
 export interface SmartTableCellContext {
@@ -34,8 +35,7 @@ export interface SmartTableOptions {
 
 export function BuildTableOptions(
   item: any,
-  columnVisibilityOverrides: { [columnName in string]:  'hidden' | 'visible' } = {},
-  columnLabelOverrides: { [columnName in string]:  string } = {}) {
+  columnVisibilityOverrides: { [columnName in string]:  'hidden' | 'visible' } = {}) {
   if (item) {
     const props = Object.getOwnPropertyNames(item)
       .filter(p => columnVisibilityOverrides[p] != 'hidden');
@@ -44,7 +44,9 @@ export function BuildTableOptions(
       const searchable = itemValue != null && ValueTypes.includes(typeof(itemValue));
       const reference = itemValue == null || RefTypes.includes(typeof(itemValue))
       return {
-        columnName: prop, searchable: searchable, isReference: reference,
+        columnName: prop,
+        searchable: searchable,
+        isReference: reference,
         type: Array.isArray(itemValue) ? 'array' : typeof itemValue,
       }
     });
@@ -73,9 +75,15 @@ export class SmartTableComponent implements OnInit, OnChanges {
   displayOptions: SmartTableOptions = { columns: [] };
   pageIndex = 1;
   pageSize = 10;
+  dialogCloseResult = '';
+  dialogRef?: NgbModalRef;
+  dialogColumnDef?: SmartTableColumnOptions;
+  dialogDataItem?: any;
   readonly pageSizeChoices = [ 10, 25, 50, 100 ];
 
-  constructor() { }
+  constructor(
+    readonly modal: NgbModal
+  ) { }
 
   ngOnInit(): void {
     this.rebuildTable(this.items);
@@ -94,6 +102,24 @@ export class SmartTableComponent implements OnInit, OnChanges {
 
   changePageIndex(_: number): void {
     this.rebuildCurrentPage();
+  }
+
+  getColumnHeader(columnName: string): string {
+    return this.columnLabelOverrides[columnName] ?? columnName;
+  }
+
+  openReferenceDetails(
+    content: TemplateRef<any>,
+    columnDef: SmartTableColumnOptions,
+    dataItem: any): void {
+    this.dialogColumnDef = columnDef;
+    this.dialogDataItem = dataItem;
+    this.dialogRef = this.modal.open(content);
+    this.dialogRef.result.then((result) => {
+      this.dialogCloseResult = `Closed with: ${result}`;
+    }, (reason) => {
+      this.dialogCloseResult = `Dismissed ${reason}`;
+    });
   }
 
   protected rebuildCurrentPage(): void {
@@ -115,7 +141,9 @@ export class SmartTableComponent implements OnInit, OnChanges {
   protected rebuildTable(items: any[]): void {
     if (!this.options) {
       if (items.length) {
-        this.displayOptions = BuildTableOptions(items[0], this.columnVisibilityOverrides);
+        this.displayOptions = BuildTableOptions(
+          items[0],
+          this.columnVisibilityOverrides);
       }
     }
     this.items = items;

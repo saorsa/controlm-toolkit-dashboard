@@ -7,7 +7,8 @@
   </div>
   <div *ngIf="stats">
     <app-smart-table
-      [columnVisibilityOverrides]="{ 'active': 'hidden', 'disabled' : 'hidden' }"
+      [columnVisibilityOverrides]="{ 'disabled' : 'hidden' }"
+      [columnLabelOverrides]="{ 'node': 'Host Name' }"
       [columnTemplateOverrides]="{ 'node' : cellNode }"
       [items]="stats"></app-smart-table>
   </div>

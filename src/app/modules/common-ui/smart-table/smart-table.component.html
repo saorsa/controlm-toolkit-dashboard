@@ -2,7 +2,7 @@
   <table class="table table-striped">
     <thead>
     <tr>
-      <th *ngFor="let c of displayOptions.columns">{{c.columnName}}</th>
+      <th *ngFor="let c of displayOptions.columns">{{getColumnHeader(c.columnName)}}</th>
     </tr>
     </thead>
     <tbody>
@@ -35,6 +35,8 @@
     </select>
 
   </div>
+
+  {{displayOptions.columns | json}}
 </div>
 
 
@@ -43,6 +45,24 @@
     {{dataItem}}
   </div>
   <div *ngIf="columnDef && columnDef['isReference']" class="cell-item">
-    {{columnDef.type}}
+    <button class="btn btn-link" (click)="openReferenceDetails(referenceTypeColumn, columnDef, dataItem)">
+      {{columnDef.type}}
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #referenceTypeColumn>
+  <div *ngIf="columnTemplateOverrides[dialogColumnDef!.columnName]">
+    <ng-container
+      *ngTemplateOutlet="columnTemplateOverrides[dialogColumnDef!.columnName]; context: { columnDef: dialogColumnDef!, dataItem: dialogDataItem }">
+    </ng-container>
+  </div>
+  <div *ngIf="!columnTemplateOverrides[dialogColumnDef!.columnName]">
+    <nav class="navbar navbar-light bg-primary text-light">
+      <b class="ps-3 pe-3">Preview {{dialogColumnDef!.type}}</b>
+    </nav>
+    <div class="p-3">
+      {{dialogDataItem | json }}
+    </div>
   </div>
 </ng-template>
