@@ -2,7 +2,8 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CtmOverviewDashboardComponent } from './ctm-overview-dashboard/ctm-overview-dashboard.component';
 import { RouterModule, Routes } from "@angular/router";
-import {ApiService} from "../../services/api.service";
+import { MatCardModule } from "@angular/material/card";
+
 
 const routes: Routes = [
   {
@@ -23,10 +24,10 @@ export class CtmOverviewRoutingModule { }
   ],
   imports: [
     CommonModule,
+    MatCardModule,
     CtmOverviewRoutingModule,
   ],
   providers: [
-    ApiService,
   ],
   exports: [
     CtmOverviewDashboardComponent,

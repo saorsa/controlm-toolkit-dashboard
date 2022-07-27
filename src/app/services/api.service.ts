@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
 import { environment } from "../../environments/environment";
 import { catchError, Observable, throwError } from "rxjs";
-import { CtmServerStats } from "./model/ctm-server.model";
+import {CtmNodeStat, CtmServerStats} from "./model/ctm-server.model";
 
 export type ApiQueryParams = HttpParams | {
   [param: string]: string | number | boolean | ReadonlyArray<string | number | boolean>;
@@ -26,6 +26,14 @@ export class ApiService {
 
   getServerStats(server: string): Observable<CtmServerStats> {
     return this.get<CtmServerStats>(`servers/${server}/stats`);
+  }
+
+  getNodeStats(server: string): Observable<{ [key in string]: CtmNodeStat }> {
+    return this.get<{ [key in string]: CtmNodeStat }>(`servers/${server}/nodes/stats`);
+  }
+
+  getAllNodeNames(server: string): Observable<string[]> {
+    return this.get<string[]>(`servers/${server}/nodes`);
   }
 
   protected get<T>(path: string, queryParams: ApiQueryParams | null = null) : Observable<T> {

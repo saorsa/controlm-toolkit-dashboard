@@ -25,6 +25,10 @@ const routes: Routes = [
       {
         path: 'apps',
         loadChildren: () => import('./modules/ctm-apps/ctm-apps.module').then(m => m.CtmAppsModule),
+      },
+      {
+        path: 'hosts',
+        loadChildren: () => import('./modules/ctm-hosts/ctm-hosts.module').then(m => m.CtmHostsModule),
       }
     ]
   }

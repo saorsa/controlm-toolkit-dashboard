@@ -4,7 +4,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from "@angular/common/http";
 import { AppComponent } from './app.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { ApiService } from "./services/api.service";
+import { ApiService, AppService } from "./services";
 import { RootChooseServerComponent } from './components/root-choose-server/root-choose-server.component';
 import { RootServerComponent } from './components/root-server/root-server.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -43,7 +43,8 @@ import { CtmHostsModule } from "./modules/ctm-hosts/ctm-hosts.module";
     CtmHostsModule,
   ],
   providers: [
-    ApiService
+    ApiService,
+    AppService,
   ],
   bootstrap: [AppComponent]
 })

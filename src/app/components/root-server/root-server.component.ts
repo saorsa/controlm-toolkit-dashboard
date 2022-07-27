@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ApiService } from "../../services/api.service";
+import { ApiService, AppService } from "../../services";
 import { ActivatedRoute } from "@angular/router";
 import { Subscription } from "rxjs";
 import { NgbOffcanvas, NgbOffcanvasRef, OffcanvasDismissReasons } from '@ng-bootstrap/ng-bootstrap';
+
 
 @Component({
   selector: 'app-root-server',
@@ -23,7 +24,8 @@ export class RootServerComponent implements OnInit {
   constructor(
     private readonly offCanvasService: NgbOffcanvas,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly api: ApiService
+    private readonly api: ApiService,
+    private readonly app: AppService,
   ){ }
 
   ngOnInit(): void {
@@ -59,8 +61,8 @@ export class RootServerComponent implements OnInit {
   protected monitorActivatedRoute(): void {
     this.paramMonitorSubscription = this.activatedRoute.params.subscribe({
       next: (p) => {
-        console.warn(p['server'])
-        this.selectedServer = p['server']
+        this.selectedServer = p['server'];
+        this.app.selectedServer = this.selectedServer;
       },
       error: (err) => {
         this.error = err;

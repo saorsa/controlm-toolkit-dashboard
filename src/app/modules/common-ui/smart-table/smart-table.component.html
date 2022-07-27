@@ -1,0 +1,48 @@
+<div *ngIf="displayOptions && displayItems">
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th *ngFor="let c of displayOptions.columns">{{c.columnName}}</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let i of displayItems">
+      <td *ngFor="let c of displayOptions.columns">
+        <div *ngIf="columnTemplateOverrides[c.columnName]">
+          <ng-container
+            *ngTemplateOutlet="columnTemplateOverrides[c.columnName]; context: { columnDef: c, dataItem: i[c.columnName] }">
+          </ng-container>
+        </div>
+        <div *ngIf="!columnTemplateOverrides[c.columnName]">
+          <ng-container
+            *ngTemplateOutlet="c.templateRef ?? valueTypeColumn; context: { columnDef: c, dataItem: i[c.columnName] }">
+          </ng-container>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <div class="d-flex justify-content-between p-2 text-center">
+    <ngb-pagination
+      [size]="'sm'"
+      [collectionSize]="(items.length)!" [(page)]="pageIndex" [pageSize]="pageSize"
+      (pageChange)="changePageIndex($event)">
+    </ngb-pagination>
+
+    <select *ngIf="false" class="form-select form-select-sm w-25" name="pageSize" (change)="changePageSize($event)">
+      <option *ngFor="let c of pageSizeChoices" [value]="c" [selected]="c === pageSize">{{c}}</option>
+    </select>
+
+  </div>
+</div>
+
+
+<ng-template #valueTypeColumn let-columnDef="columnDef" let-dataItem="dataItem">
+  <div *ngIf="columnDef && !columnDef['isReference']" class="cell-item" [ngClass]="columnDef['type']">
+    {{dataItem}}
+  </div>
+  <div *ngIf="columnDef && columnDef['isReference']" class="cell-item">
+    {{columnDef.type}}
+  </div>
+</ng-template>

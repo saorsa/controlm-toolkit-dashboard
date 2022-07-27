@@ -1,1 +1,48 @@
-<p>ctm-overview-dashboard works!</p>
+<div class="p-3">
+  <div *ngIf="loading">
+    Loading Control-M servers, please wait...
+  </div>
+  <div *ngIf="error" class="alert alert-danger">
+    An error has occurred. {{error}}
+  </div>
+  <div *ngIf="stats">
+    <div class="container m-0 p-3">
+      <div class="row m-0 p-0">
+        <div class="col-xl-2 col-lg-3 col-md-3 col-sm-6 col-xs-6 p-2">
+          <ng-container
+            *ngTemplateOutlet="card; context: { title: 'Applications', count: stats.applicationsCount, link: '../apps' } ">
+          </ng-container>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-3 col-sm-6 col-xs-6 p-2">
+          <ng-container
+            *ngTemplateOutlet="card; context: { title: 'Sub-Applications', count: stats.subApplicationsCount, link: '../subs' } ">
+          </ng-container>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-3 col-sm-6 col-xs-6 p-2">
+          <ng-container
+            *ngTemplateOutlet="card; context: { title: 'Hosts', count: stats.hostsCount, link: '../hosts' } ">
+          </ng-container>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-3 col-sm-6 col-xs-6 p-2">
+          <ng-container
+            *ngTemplateOutlet="card; context: { title: 'Folders', count: stats.foldersCount, link: '../folders' } ">
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<ng-template #card let-title="title" let-count="count" let-link="link">
+  <mat-card class="default-card text-center p-0" [routerLink]="link">
+    <div>
+      <nav class="navbar navbar-light bg-primary text-light">
+        <b class="ps-3 pe-3">{{title}}</b>
+      </nav>
+      <div class="p-5">
+        {{count}}
+      </div>
+    </div>
+  </mat-card>
+</ng-template>
