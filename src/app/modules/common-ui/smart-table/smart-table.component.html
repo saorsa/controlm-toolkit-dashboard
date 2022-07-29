@@ -2,13 +2,13 @@
   <table class="table table-striped">
     <thead *ngIf="!displayOptions.hideHeader">
     <tr>
-      <th *ngFor="let c of displayOptions.columns"
+      <th *ngFor="let c of displayOptions.columnDefs"
         [ngClass]="c.cssClass || columnCssOverrides[c.columnName] || []">{{getColumnHeader(c.columnName)}}</th>
     </tr>
     </thead>
     <tbody>
     <tr *ngFor="let i of displayItems">
-      <td *ngFor="let c of displayOptions.columns"
+      <td *ngFor="let c of displayOptions.columnDefs"
           [ngClass]="c.cssClass || columnCssOverrides[c.columnName] || []">
         <div *ngIf="columnTemplateOverrides[c.columnName]">
           <ng-container
@@ -31,14 +31,10 @@
       [collectionSize]="(items.length)!" [(page)]="pageIndex" [pageSize]="pageSize"
       (pageChange)="changePageIndex($event)">
     </ngb-pagination>
-
     <select *ngIf="false" class="form-select form-select-sm w-25" name="pageSize" (change)="changePageSize($event)">
       <option *ngFor="let c of pageSizeChoices" [value]="c" [selected]="c === pageSize">{{c}}</option>
     </select>
-
   </div>
-
-  {{displayOptions.columns | json}}
 </div>
 
 
@@ -47,31 +43,11 @@
     {{dataItem}}
   </div>
   <div *ngIf="columnDef && columnDef['isReference']" class="cell-item">
-    <button class="btn btn-link btn-simple"
-            (click)="openReferenceDetails(referenceTypeDialogTemplate, columnDef, dataItem)">
-      <span [ngSwitch]="columnDef.type">
-        <span *ngSwitchCase="'array'">Array</span>
-        <span *ngSwitchCase="'object'">Object</span>
-        <span *ngSwitchCase="'function'">Function</span>
-      </span>
-    </button>
-  </div>
-</ng-template>
 
-<ng-template #referenceTypeDialogTemplate>
-  <div class="">
-    <div *ngIf="columnTemplateOverrides[dialogColumnDef!.columnName]">
-      <ng-container
-        *ngTemplateOutlet="columnTemplateOverrides[dialogColumnDef!.columnName]; context: { columnDef: dialogColumnDef!, dataItem: dialogDataItem }">
-      </ng-container>
-    </div>
-    <div *ngIf="!columnTemplateOverrides[dialogColumnDef!.columnName]">
-      <nav class="navbar navbar-light bg-primary text-light">
-        <b class="ps-3 pe-3">Preview {{getColumnHeader(dialogColumnDef!.columnName)}} ({{dialogColumnDef!.type}})</b>
-      </nav>
-      <div class="p-3 dialog-container">
-        <pre *ngIf="dialogDataItem">{{dialogDataItem | json }}</pre>
-      </div>
-    </div>
+    <app-inspect-button
+      [buttonText]="columnDef.type"
+      [data]="dataItem"
+    >
+    </app-inspect-button>
   </div>
 </ng-template>

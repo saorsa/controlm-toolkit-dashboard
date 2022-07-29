@@ -1,0 +1,17 @@
+<button class="btn btn-link" (click)="openDialog(dialogTemplateRef ?? defaultDialog)">
+  <mat-icon class="me-1">adb</mat-icon>
+  <span>{{buttonText}}</span>
+</button>
+
+<ng-template #defaultDialog>
+  <div>
+    <div>
+      <nav class="navbar navbar-light bg-primary text-light">
+        <b class="ps-3 pe-3">{{dialogTitle ?? 'Inspect'}}</b>
+      </nav>
+      <div class="p-3 dialog-container">
+        <pre *ngIf="data">{{data | json }}</pre>
+      </div>
+    </div>
+  </div>
+</ng-template>

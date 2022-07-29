@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Subject } from "rxjs";
+
 
 @Injectable({
   providedIn: 'root'
 })
-export class AppService {
+export class AppService implements OnDestroy {
 
   private _selectedServer?: string;
   private readonly _serverSelection = new Subject<string | undefined>();
@@ -21,5 +22,9 @@ export class AppService {
 
   get serverChange() : Subject<string | undefined> {
     return this._serverSelection;
+  }
+
+  ngOnDestroy(): void {
+
   }
 }

@@ -21,6 +21,9 @@ const routes: Routes = [
       {
         path: 'overview',
         loadChildren: () => import('./modules/ctm-overview/ctm-overview.module').then(m => m.CtmOverviewModule),
+        data: {
+          breadcrumbLabel: 'Overview'
+        }
       },
       {
         path: 'apps',
@@ -29,8 +32,14 @@ const routes: Routes = [
       {
         path: 'hosts',
         loadChildren: () => import('./modules/ctm-hosts/ctm-hosts.module').then(m => m.CtmHostsModule),
+        data: {
+          breadcrumbLabel: 'Hosts'
+        }
       }
-    ]
+    ],
+    data: {
+      breadcrumbLabel: 'Server'
+    }
   }
 ];
 

@@ -5,10 +5,6 @@ import { Subscription } from "rxjs";
 import { NgbNavChangeEvent } from "@ng-bootstrap/ng-bootstrap";
 
 
-export type IndexedKey<TKey, TSubKey> = { index: number, key: TKey, subKey: TSubKey };
-
-export type IndexedSimpleKey<TKey> = { index: number, key: TKey };
-
 @Component({
   selector: 'app-ctm-host-view',
   templateUrl: './ctm-host-view.component.html',
@@ -35,11 +31,16 @@ export class CtmHostViewComponent implements OnInit {
     })
   }
 
-  get jobKeys(): { index: number, job: string}[]   {
+  get jobKeys(): { index: number, folder: string, job: { folder: string, jobName: string }}[]   {
     return (this.stats?.jobs || []).map((key, index) => {
+      const split = key.indexOf('/') >= 0 ? key.split('/') : [ 'ERROR', key];
       return {
         index: index,
-        job: key
+        folder: split[0],
+        job: {
+          folder: split[0],
+          jobName: split[1],
+        }
       }
     })
   }

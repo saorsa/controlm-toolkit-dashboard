@@ -1,7 +1,6 @@
 import {
   Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef
 } from '@angular/core';
-import {NgbModal, NgbModalRef} from "@ng-bootstrap/ng-bootstrap";
 
 
 export interface SmartTableCellContext {
@@ -32,15 +31,16 @@ export const RefTypes = [
 ]
 
 export interface SmartTableOptions {
-  columns: SmartTableColumnOptions[],
+  columnDefs?: SmartTableColumnOptions[],
   hideHeader?: boolean
 }
 
 export function BuildTableOptions(
   item: any,
+  hideHeader: boolean = false,
   columnVisibilityOverrides: { [columnName in string]:  'hidden' | 'visible' } = {},
   columnCssOverrides: { [columnName in string]:  string } = {},
-  columnOrderIndexOverrides: { [columnName in string]:  number } = {}) {
+  columnOrderIndexOverrides: { [columnName in string]:  number } = {}) : SmartTableOptions {
   if (item) {
     const props = Object.getOwnPropertyNames(item)
       .filter(p => columnVisibilityOverrides[p] != 'hidden');
@@ -64,7 +64,8 @@ export function BuildTableOptions(
         return a.orderIndex - b.orderIndex;
       });
     return {
-      columns: columns
+      columnDefs: columns,
+      hideHeader: hideHeader,
     };
   }
   throw new Error("Cannot build smart table options, the source argument 'item' is NULL.");
@@ -87,17 +88,15 @@ export class SmartTableComponent implements OnInit, OnChanges {
   @Input() columnOrderIndexOverrides: { [columnName in string]:  number } = {};
 
   displayItems: any[] = [];
-  displayOptions: SmartTableOptions = { columns: [] };
+  displayOptions: SmartTableOptions = {
+    columnDefs: [],
+    hideHeader: false
+  };
   pageIndex = 1;
   pageSize = 10;
-  dialogCloseResult = '';
-  dialogRef?: NgbModalRef;
-  dialogColumnDef?: SmartTableColumnOptions;
-  dialogDataItem?: any;
   readonly pageSizeChoices = [ 10, 25, 50, 100 ];
 
   constructor(
-    readonly modal: NgbModal
   ) { }
 
   ngOnInit(): void {
@@ -123,20 +122,6 @@ export class SmartTableComponent implements OnInit, OnChanges {
     return this.columnLabelOverrides[columnName] ?? columnName;
   }
 
-  openReferenceDetails(
-    content: TemplateRef<any>,
-    columnDef: SmartTableColumnOptions,
-    dataItem: any): void {
-    this.dialogColumnDef = columnDef;
-    this.dialogDataItem = dataItem;
-    this.dialogRef = this.modal.open(content);
-    this.dialogRef.result.then((result) => {
-      this.dialogCloseResult = `Closed with: ${result}`;
-    }, (reason) => {
-      this.dialogCloseResult = `Dismissed ${reason}`;
-    });
-  }
-
   protected rebuildCurrentPage(): void {
     const from = (this.pageIndex - 1) * this.pageSize;
     const to = this.pageIndex * this.pageSize;
@@ -154,10 +139,11 @@ export class SmartTableComponent implements OnInit, OnChanges {
   }
 
   protected rebuildTable(items: any[]): void {
-    if (!this.options) {
+    if (!this.options || !this.options.columnDefs) {
       if (items.length) {
         this.displayOptions = BuildTableOptions(
           items[0],
+          this.options?.hideHeader || false,
           this.columnVisibilityOverrides,
           this.columnCssOverrides,
           this.columnOrderIndexOverrides);

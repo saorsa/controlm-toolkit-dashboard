@@ -1,7 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {ApiService, AppService, CtmNodeStat} from "../../../services";
-import {CtmNodeBasicInfo} from "../../../services/model/ctm-server.model";
-import {Subscription} from "rxjs";
+import { Component, OnInit } from '@angular/core';
+import { ApiService, AppService, CtmNodeStat } from "../../../services";
+import { CtmNodeBasicInfo } from "../../../services";
+import { Subscription } from "rxjs";
+
 
 @Component({
   selector: 'app-ctm-hosts-dashboard',

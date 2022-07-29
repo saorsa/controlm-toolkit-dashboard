@@ -1,14 +1,19 @@
 <div class="p-3">
   <div *ngIf="loading">
-    Loading Control-M servers, please wait...
+    Loading Control-M agent, please wait...
   </div>
   <div *ngIf="error" class="alert alert-danger">
     An error has occurred. {{error}}
   </div>
   <div *ngIf="stats">
-    <h6>{{selectedHost}}</h6>
+    <mat-card class="mb-4 p-0">
+      <nav class="navbar bg-light">
+        <b class="ps-3 pe-3">Host</b>
+      </nav>
+      <div class="p-3">{{selectedHost}}</div>
+    </mat-card>
     <div>
-      <ul ngbNav #nav="ngbNav" [(activeId)]="active" (navChange)="onNavChange($event)" class="nav-tabs">
+      <ul ngbNav [(activeId)]="active" (navChange)="onNavChange($event)" class="nav-tabs">
         <li [ngbNavItem]="1">
           <a ngbNavLink>Folders</a>
         </li>
@@ -18,14 +23,16 @@
       </ul>
       <div *ngIf="active == 1">
         <app-smart-table
+          [options]="{ hideHeader: true }"
           [columnVisibilityOverrides]="{ 'index': 'hidden'}"
           [columnTemplateOverrides]="{ 'folder': cellFolder }"
           [items]="folderKeys"></app-smart-table>
       </div>
       <div *ngIf="active == 2">
         <app-smart-table
+          [options]="{ hideHeader: true }"
           [columnVisibilityOverrides]="{ 'index': 'hidden'}"
-          [columnTemplateOverrides]="{ 'job': cellJob }"
+          [columnTemplateOverrides]="{ 'job': cellJob, 'folder': cellFolder }"
           [items]="jobKeys"></app-smart-table>
       </div>
     </div>
@@ -37,9 +44,7 @@
 </ng-template>
 
 <ng-template #cellJob let-dataItem=dataItem>
-  <a class="btn btn-link" [routerLink]="['/servers', selectedServer, 'folders', dataItem.split('/')[0]]">{{dataItem.split('/')[0]}}</a>
-    /
   <a class="btn btn-link" [routerLink]="[
-  '/servers', selectedServer, 'folders', dataItem.split('/')[0],
-  'jobs', dataItem.split('/')[1]]">{{dataItem.split('/')[1]}}</a>
+  '/servers', selectedServer, 'folders', dataItem['folder'], 'jobs', dataItem['jobName']]"
+  >{{dataItem['jobName']}}</a>
 </ng-template>
