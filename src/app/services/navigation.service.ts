@@ -5,14 +5,19 @@ import {
   NavigationStart,
   NavigationEnd,
   ActivationEnd,
-  ActivationStart,
   ActivatedRouteSnapshot
 } from "@angular/router";
 import { Subject, Subscription } from "rxjs";
 
 
 export interface NavigationBreadcrumb {
+  /**
+   * The root relative URL of the breadcrumb.
+   */
   url: string,
+  /**
+   * The display label of the breadcrumb.
+   */
   label: string,
 }
 
@@ -39,12 +44,10 @@ export class NavigationService implements OnDestroy {
   ) {
     this._routerSubscription = this.router.events.subscribe({
       next: (event: RouterEvent) => {
-        console.warn('event', event)
         if (event instanceof NavigationStart) {
           this._routeSnapshots.length = 0;
         }
         if (event instanceof ActivationEnd && event.snapshot.url.length) {
-          console.warn('adding at 0', event.snapshot.url[0])
           this._routeSnapshots.splice(0, 0, event.snapshot);
         }
         if (event instanceof NavigationEnd){
@@ -70,7 +73,6 @@ export class NavigationService implements OnDestroy {
           `Invalid route snapshot for breadcrumb, its url segments array (${snapshot.url}) contains multiple segments.`);
       }
       lastPath = `${lastPath}/${snapshot.url[0]}`
-      console.warn('FUCK', snapshot.params, snapshot.data, snapshot.url)
       const label = snapshot.data['breadcrumbLabel'] ? snapshot.data['breadcrumbLabel'] : snapshot.url[0]
       return {
         url: lastPath,

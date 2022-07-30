@@ -1,9 +1,29 @@
 <div *ngIf="displayOptions && displayItems">
   <table class="table table-striped">
-    <thead *ngIf="!displayOptions.hideHeader">
-    <tr>
+    <thead>
+    <tr *ngIf="!displayOptions.hideHeader">
       <th *ngFor="let c of displayOptions.columnDefs"
         [ngClass]="c.cssClass || columnCssOverrides[c.columnName] || []">{{getColumnHeader(c.columnName)}}</th>
+    </tr>
+    <tr>
+      <th *ngFor="let c of displayOptions.columnDefs"
+          [ngClass]="c.cssClass || columnCssOverrides[c.columnName] || []">
+        <div [ngSwitch]="c.filter.type">
+          <div *ngSwitchCase="'none'">
+            --
+          </div>
+          <div *ngSwitchCase="'match'">
+            -- match
+          </div>
+          <div *ngSwitchCase="'contains'">
+            <input class="form-control d-block" type="text" placeholder="{{getColumnHeader(c.columnName)}} Search"
+              (input)="containsSearchOnKeyUp(c, $event)">
+          </div>
+          <div *ngSwitchCase="'choice'">
+            -- choice
+          </div>
+        </div>
+      </th>
     </tr>
     </thead>
     <tbody>
@@ -28,7 +48,7 @@
   <div class="d-flex justify-content-between p-2 text-center">
     <ngb-pagination
       [size]="'sm'"
-      [collectionSize]="(items.length)!" [(page)]="pageIndex" [pageSize]="pageSize"
+      [collectionSize]="filteredItems.length" [(page)]="pageIndex" [pageSize]="pageSize"
       (pageChange)="changePageIndex($event)">
     </ngb-pagination>
     <select *ngIf="false" class="form-select form-select-sm w-25" name="pageSize" (change)="changePageSize($event)">

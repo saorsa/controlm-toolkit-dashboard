@@ -8,6 +8,11 @@
   <div *ngIf="stats">
     <app-smart-table
       [columnVisibilityOverrides]="{ 'disabled' : 'visible' }"
+      [columnFilterOverrides]="{
+        'active': { type: 'none' },
+        'activeCount': { type: 'match' },
+        'disabled' : { type: 'none'},
+        'disabledCount': { type: 'match'} }"
       [columnLabelOverrides]="{
         'node': 'Host Name',
         'activeCount': 'Active #',
