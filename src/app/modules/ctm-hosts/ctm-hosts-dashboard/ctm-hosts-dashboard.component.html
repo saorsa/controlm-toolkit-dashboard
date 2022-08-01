@@ -9,10 +9,11 @@
     <app-smart-table
       [columnVisibilityOverrides]="{ 'disabled' : 'visible' }"
       [columnFilterOverrides]="{
+        'node': { type: 'contains' },
         'active': { type: 'none' },
-        'activeCount': { type: 'match' },
+        'activeCount': { type: 'equalTo' },
         'disabled' : { type: 'none'},
-        'disabledCount': { type: 'match'} }"
+        'disabledCount': { type: 'equalTo'} }"
       [columnLabelOverrides]="{
         'node': 'Host Name',
         'activeCount': 'Active #',

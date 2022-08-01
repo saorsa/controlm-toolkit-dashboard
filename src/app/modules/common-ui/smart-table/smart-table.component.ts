@@ -1,13 +1,23 @@
 import {
   Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef
 } from '@angular/core';
+import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
 
 
 export type FilterType =
   'none' |
-  'match' |
   'contains' |
-  'choice';
+  'equalTo' |
+  'greaterThan' |
+  'lessThan';
+
+export const FilterTypeDisplayLabelsMap: { [key in FilterType]: string} = {
+  'none': 'No Filter',
+  'contains': 'Contains',
+  'equalTo': 'Is Equal To',
+  'greaterThan': 'Is Greater Than',
+  'lessThan': 'Is Less Than',
+}
 
 export interface ColumnFilterDef {
   type: FilterType,
@@ -35,26 +45,52 @@ export interface SmartTableColumnOptions {
   orderIndex?: number
 }
 
-export const ValueTypes = [
+export const ValueTypes: string[] = [
   'boolean',
   'number',
   'string',
 ]
 
-export const RefTypes = [
+export const RefTypes: string[] = [
   'function',
   'array',
   'object',
 ]
 
+export const TypeToFilterTypeMap: { [key in string]: FilterType[]} = {
+  'undefined' : [
+    'none'
+  ],
+  'boolean': [
+    'none',
+    'equalTo'
+  ],
+  'number': [
+    'none',
+    'equalTo',
+    'greaterThan',
+    'lessThan',
+  ],
+  'string': [
+    'none',
+    'contains',
+    'equalTo',
+  ],
+  'function' : [ 'none' ],
+  'array' : [ 'none' ],
+  'object': [ 'none' ],
+}
+
 export interface SmartTableOptions {
   columnDefs?: SmartTableColumnOptions[],
-  hideHeader?: boolean
+  hideHeader?: boolean,
+  hideFilters?: boolean,
 }
 
 export function BuildTableOptions(
   item: any,
   hideHeader: boolean = false,
+  hideFilters: boolean = false,
   columnVisibilityOverrides: { [columnName in string]:  'hidden' | 'visible' } = {},
   columnCssOverrides: { [columnName in string]:  string } = {},
   columnOrderIndexOverrides: { [columnName in string]:  number } = {},
@@ -87,6 +123,7 @@ export function BuildTableOptions(
     return {
       columnDefs: columns,
       hideHeader: hideHeader,
+      hideFilters: hideFilters,
     };
   }
   throw new Error("Cannot build smart table options, the source argument 'item' is NULL.");
@@ -109,12 +146,14 @@ export class SmartTableComponent implements OnInit, OnChanges {
   @Input() columnOrderIndexOverrides: { [columnName in string]:  number } = {};
   @Input() columnFilterOverrides: { [columnName in string]:  ColumnFilterDef } = {};
 
+  filterForm?: FormGroup;
   filteredItems: any[] = [];
   filterTimeout?: number;
   displayItems: any[] = [];
   displayOptions: SmartTableOptions = {
     columnDefs: [],
-    hideHeader: false
+    hideHeader: false,
+    hideFilters: false,
   };
   pageIndex = 1;
   pageSize = 10;
@@ -122,6 +161,7 @@ export class SmartTableComponent implements OnInit, OnChanges {
   readonly activeFilters: SmartTableFilter[] = [];
 
   constructor(
+    private readonly fb: FormBuilder,
   ) { }
 
   ngOnInit(): void {
@@ -148,16 +188,29 @@ export class SmartTableComponent implements OnInit, OnChanges {
     return this.columnLabelOverrides[columnName] ?? columnName;
   }
 
-  containsSearchOnKeyUp(columnDef: SmartTableColumnOptions, event: any): void {
+  getColumnFilterInputType(columnDef: SmartTableColumnOptions): string {
+    if (!columnDef.type) {
+      return 'text';
+    }
+    if (columnDef.type == 'number') {
+      return 'number'
+    }
+    return 'text'
+  }
+
+  containsSearchOnKeyUp(columnDef: SmartTableColumnOptions, filterType: FilterType, event: any): any {
     const columnName = columnDef.columnName;
-    const filterArg = event?.target.value.trim().toLowerCase();
+    const filterArgType = columnDef.type;
+    const filterArg = filterArgType === 'string' ?
+      event?.target.value.trim().toLowerCase() :
+      event?.target.value;
     const existingFilterIndex = this.activeFilters.findIndex(
-      f => f.columnName === columnName && f.filterType === 'contains');
+      f => f.columnName === columnName && f.filterType === filterType);
     if (filterArg && filterArg.length) {
       if (existingFilterIndex === -1) {
         this.activeFilters.push({
           columnName: columnName,
-          filterType: 'contains',
+          filterType: filterType,
           filterArg1: filterArg,
         });
       }
@@ -181,16 +234,28 @@ export class SmartTableComponent implements OnInit, OnChanges {
     if (numberOfFilters && this.items.length) {
       let filterResults: any[] = [];
       this.items.forEach(item => {
+        let itemMatchesFilters: boolean = false;
         for (let index = 0; index < numberOfFilters; index++) {
           const filter = this.activeFilters[index];
-          const match = this.matcherContains(item, filter.columnName, filter.filterArg1);
-          console.info('matcher = ', match, item, filter.columnName, filter.filterArg1);
-          if (!match) {
+          if (filter.filterType === 'contains') {
+            itemMatchesFilters = this.matcherContains(item, filter.columnName, filter.filterArg1);
+          }
+          else if (filter.filterType === 'equalTo') {
+            itemMatchesFilters = this.matcherEquals(item, filter.columnName, filter.filterArg1);
+          }
+          else if (filter.filterType === 'greaterThan') {
+            itemMatchesFilters = this.matcherGreaterThan(item, filter.columnName, filter.filterArg1);
+          }
+          else if (filter.filterType === 'lessThan') {
+            itemMatchesFilters = this.matcherLessThan(item, filter.columnName, filter.filterArg1);
+          }
+          if (!itemMatchesFilters) {
+            console.info(filter.filterType, filter.columnName, filter.filterArg1, item[filter.columnName]);
             break;
           }
-          else {
-            filterResults.push(item);
-          }
+        }
+        if (itemMatchesFilters) {
+          filterResults.push(item);
         }
       });
       this.filteredItems = filterResults;
@@ -205,10 +270,27 @@ export class SmartTableComponent implements OnInit, OnChanges {
     return itemValue && itemValue.includes(searchKey);
   }
 
+  protected matcherEquals(item: any, property: string, value: any): boolean {
+    const itemValue = item[property];
+    return itemValue != null && itemValue == value;
+  }
+
+  protected matcherGreaterThan(item: any, property: string, value: any): boolean {
+    const num: number = +value;
+    const itemValue = item[property];
+    return itemValue != null && itemValue > num;
+  }
+
+  protected matcherLessThan(item: any, property: string, value: any): boolean {
+    const num: number = +value;
+    const itemValue = item[property];
+    return itemValue != null && itemValue < num;
+  }
+
   protected rebuildCurrentPage(): void {
     const items = this.filteredItems ?? this.items;
     const from = (this.pageIndex - 1) * this.pageSize;
-    const to = this.pageIndex * this.pageSize;
+    //  const to = this.pageIndex * this.pageSize;
     const total = items.length;
     if (from <= total) {
       const diff = total - 1 - from;
@@ -227,14 +309,43 @@ export class SmartTableComponent implements OnInit, OnChanges {
         this.displayOptions = BuildTableOptions(
           items[0],
           this.options?.hideHeader || false,
+          this.options?.hideFilters || false,
           this.columnVisibilityOverrides,
           this.columnCssOverrides,
           this.columnOrderIndexOverrides,
           this.columnFilterOverrides);
       }
     }
+
+    this.filterForm = this.fb.group({});
+    this.displayOptions.columnDefs?.forEach(columnDef => {
+      const nested: FormGroup = this.fb.group({
+        'filterType': [ columnDef.filter.type ],
+        'filterArgument': [],
+      });
+      this.filterForm?.addControl(columnDef.columnName, nested);
+    });
+    console.warn('form is', this.filterForm.value)
+    console.warn('displayOptions is', this.displayOptions)
+
     this.items = items;
     this.rebuildFilteredItems();
     this.rebuildCurrentPage();
+  }
+
+  getAllowedFilterTypes(columnDef: SmartTableColumnOptions): string[] {
+    return TypeToFilterTypeMap[columnDef.type ?? 'undefined'];
+  }
+
+  getFilterTypeControl(columnDef: SmartTableColumnOptions): FormControl {
+    return this.filterForm!.get(columnDef.columnName)!.get('filterType') as FormControl;
+  }
+
+  getFilterTypeDisplayLabel(ft: string): string {
+    return FilterTypeDisplayLabelsMap[ft as FilterType];
+  }
+
+  getFilterArgumentControl(columnDef: SmartTableColumnOptions): FormControl {
+    return this.filterForm!.get(columnDef.columnName)!.get('filterArgument') as FormControl;
   }
 }

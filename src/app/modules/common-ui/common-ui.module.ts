@@ -5,6 +5,7 @@ import { SmartTableComponent } from './smart-table/smart-table.component';
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
+import { ReactiveFormsModule } from "@angular/forms";
 
 
 @NgModule({
@@ -17,6 +18,7 @@ import { MatButtonModule } from "@angular/material/button";
     NgbModule,
     MatIconModule,
     MatButtonModule,
+    ReactiveFormsModule,
   ],
   exports: [
     SmartTableComponent

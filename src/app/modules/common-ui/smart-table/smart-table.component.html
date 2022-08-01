@@ -1,26 +1,41 @@
-<div *ngIf="displayOptions && displayItems">
-  <table class="table table-striped">
+<div *ngIf="displayOptions && displayItems &&filterForm">
+  <table class="table table-striped" [formGroup]="filterForm">
     <thead>
     <tr *ngIf="!displayOptions.hideHeader">
       <th *ngFor="let c of displayOptions.columnDefs"
         [ngClass]="c.cssClass || columnCssOverrides[c.columnName] || []">{{getColumnHeader(c.columnName)}}</th>
     </tr>
-    <tr>
+    <tr *ngIf="!displayOptions.hideFilters">
       <th *ngFor="let c of displayOptions.columnDefs"
           [ngClass]="c.cssClass || columnCssOverrides[c.columnName] || []">
-        <div [ngSwitch]="c.filter.type">
-          <div *ngSwitchCase="'none'">
-            --
-          </div>
-          <div *ngSwitchCase="'match'">
-            -- match
+        <select class="form-select d-block" aria-label="" [formControl]="getFilterTypeControl(c)">
+          <option *ngFor="let ft of getAllowedFilterTypes(c)" [value]="ft">
+            {{getFilterTypeDisplayLabel(ft)}}
+          </option>
+        </select>
+        <div [ngSwitch]="getFilterTypeControl(c).value">
+          <div *ngSwitchCase="'none'" style="min-height: 38px">
+
           </div>
           <div *ngSwitchCase="'contains'">
-            <input class="form-control d-block" type="text" placeholder="{{getColumnHeader(c.columnName)}} Search"
-              (input)="containsSearchOnKeyUp(c, $event)">
+            <input class="form-control d-block" type="text" placeholder="Pattern"
+                   [formControl]="getFilterArgumentControl(c)"
+              (input)="containsSearchOnKeyUp(c, 'contains', $event)">
           </div>
-          <div *ngSwitchCase="'choice'">
-            -- choice
+          <div *ngSwitchCase="'equalTo'">
+            <input class="form-control d-block" type="{{getColumnFilterInputType(c)}}" placeholder="Value"
+                   [formControl]="getFilterArgumentControl(c)"
+                   (input)="containsSearchOnKeyUp(c, 'equalTo', $event)">
+          </div>
+          <div *ngSwitchCase="'greaterThan'">
+            <input class="form-control d-block" type="{{getColumnFilterInputType(c)}}" placeholder="Value"
+                   [formControl]="getFilterArgumentControl(c)"
+                   (input)="containsSearchOnKeyUp(c, 'greaterThan', $event)">
+          </div>
+          <div *ngSwitchCase="'lessThan'">
+            <input class="form-control d-block" type="{{getColumnFilterInputType(c)}}" placeholder="Value"
+                   [formControl]="getFilterArgumentControl(c)"
+                   (input)="containsSearchOnKeyUp(c, 'lessThan', $event)">
           </div>
         </div>
       </th>
@@ -63,7 +78,6 @@
     {{dataItem}}
   </div>
   <div *ngIf="columnDef && columnDef['isReference']" class="cell-item">
-
     <app-inspect-button
       [buttonText]="columnDef.type"
       [data]="dataItem"

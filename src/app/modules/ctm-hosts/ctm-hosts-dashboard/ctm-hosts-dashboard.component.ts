@@ -48,7 +48,6 @@ export class CtmHostsDashboardComponent implements OnInit {
             }
           });
           this.loading = false;
-          console.warn(result)
         },
         error: (error) => {
           this.error = error;
