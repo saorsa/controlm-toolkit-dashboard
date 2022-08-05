@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CtmHostViewComponent } from './ctm-host-view/ctm-host-view.component';
-import { CtmHostsDashboardComponent } from './ctm-hosts-dashboard/ctm-hosts-dashboard.component';
+import { CtmNodeViewComponent } from './ctm-node-view/ctm-node-view.component';
+import { CtmNodesDashboardComponent } from './ctm-hosts-dashboard/ctm-nodes-dashboard.component';
 import { RouterModule, Routes } from "@angular/router";
 import { CommonUiModule } from "../common-ui";
 import { NgbModule } from "@ng-bootstrap/ng-bootstrap";
@@ -11,14 +11,14 @@ import { MatCardModule } from "@angular/material/card";
 const routes: Routes = [
   {
     path: '',
-    component: CtmHostsDashboardComponent,
+    component: CtmNodesDashboardComponent,
     data: {
-      breadcrumbLabel: 'Hosts'
+      breadcrumbLabel: 'Nodes'
     }
   },
   {
     path: ':host',
-    component: CtmHostViewComponent,
+    component: CtmNodeViewComponent,
     data: {
       breadcrumbLabel: 'Preview'
     }
@@ -31,24 +31,24 @@ const routes: Routes = [
   declarations: [
   ]
 })
-export class CtmHostsRoutingModule { }
+export class CtmNodesRoutingModule { }
 
 
 @NgModule({
   declarations: [
-    CtmHostsDashboardComponent,
-    CtmHostViewComponent
+    CtmNodesDashboardComponent,
+    CtmNodeViewComponent
   ],
   imports: [
     CommonModule,
-    CtmHostsRoutingModule,
+    CtmNodesRoutingModule,
     CommonUiModule,
     NgbModule,
     MatCardModule,
   ],
   exports: [
-    CtmHostsDashboardComponent,
-    CtmHostViewComponent
+    CtmNodesDashboardComponent,
+    CtmNodeViewComponent
   ]
 })
-export class CtmHostsModule { }
+export class CtmNodesModule { }

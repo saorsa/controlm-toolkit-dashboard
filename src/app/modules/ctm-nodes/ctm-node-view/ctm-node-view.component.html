@@ -8,9 +8,24 @@
   <div *ngIf="stats">
     <mat-card class="mb-4 p-0">
       <nav class="navbar bg-light">
-        <b class="ps-3 pe-3">Host</b>
+        <b class="ps-3 pe-3">
+          Node
+        </b>
       </nav>
       <div class="p-3">{{selectedHost}}</div>
+    </mat-card>
+    <mat-card class="mb-4 p-0" *ngIf="stats?.group">
+      <nav class="navbar bg-light">
+        <b class="ps-3 pe-3">
+          Host Group
+        </b>
+      </nav>
+      <div class="p-3">
+        <span>
+          <a class="btn btn-link" [routerLink]="['/', selectedServer, 'nodes', stats.group]">
+            {{stats.group}}</a>
+        </span>
+      </div>
     </mat-card>
     <div>
       <ul ngbNav [(activeId)]="active" (navChange)="onNavChange($event)" class="nav-tabs">
@@ -19,6 +34,9 @@
         </li>
         <li [ngbNavItem]="2">
           <a ngbNavLink>Jobs</a>
+        </li>
+        <li [ngbNavItem]="3" *ngIf="stats.hosts?.length">
+          <a ngbNavLink>Hosts</a>
         </li>
       </ul>
       <div *ngIf="active == 1">
@@ -33,18 +51,32 @@
           [options]="{ hideHeader: true }"
           [columnVisibilityOverrides]="{ 'index': 'hidden'}"
           [columnTemplateOverrides]="{ 'job': cellJob, 'folder': cellFolder }"
+          [columnFilterOverrides]="{'job': { type: 'contains', filterFunc: jobNameMatcher }}"
           [items]="jobKeys"></app-smart-table>
+      </div>
+      <div *ngIf="active == 3 && stats.hosts?.length">
+        <app-smart-table
+          [options]="{ hideHeader: true }"
+          [columnVisibilityOverrides]="{ 'server': 'hidden', 'group': 'hidden' }"
+          [columnTemplateOverrides]="{ 'host': cellHost }"
+          [items]="stats.hosts!"></app-smart-table>
       </div>
     </div>
   </div>
 </div>
 
 <ng-template #cellFolder let-dataItem=dataItem>
-  <a class="btn btn-link" [routerLink]="['/servers', selectedServer, 'folders', dataItem]">{{dataItem}}</a>
+  <a class="btn btn-link" [routerLink]="['/', selectedServer, 'folders', dataItem]">
+    {{dataItem}}</a>
 </ng-template>
 
 <ng-template #cellJob let-dataItem=dataItem>
   <a class="btn btn-link" [routerLink]="[
-  '/servers', selectedServer, 'folders', dataItem['folder'], 'jobs', dataItem['jobName']]"
-  >{{dataItem['jobName']}}</a>
+  '/', selectedServer, 'folders', dataItem['folder'], 'jobs', dataItem['jobName']]">
+    {{dataItem['jobName']}}</a>
+</ng-template>
+
+<ng-template #cellHost let-dataItem=dataItem>
+  <a class="btn btn-link" [routerLink]="['/', selectedServer, 'nodes', dataItem]">
+    {{dataItem}}</a>
 </ng-template>

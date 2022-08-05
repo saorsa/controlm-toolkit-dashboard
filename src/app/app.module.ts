@@ -16,7 +16,7 @@ import { CtmAppsModule } from "./modules/ctm-apps/ctm-apps.module";
 import { CtmSubAppsModule } from "./modules/ctm-sub-apps/ctm-sub-apps.module";
 import { CtmFoldersModule } from "./modules/ctm-folders/ctm-folders.module";
 import { CtmJobsModule } from "./modules/ctm-jobs/ctm-jobs.module";
-import { CtmHostsModule } from "./modules/ctm-hosts";
+import { CtmNodesModule } from "./modules/ctm-nodes";
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 
 
@@ -42,7 +42,7 @@ import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.compo
     CtmSubAppsModule,
     CtmFoldersModule,
     CtmJobsModule,
-    CtmHostsModule,
+    CtmNodesModule,
   ],
   providers: [
     ApiService,

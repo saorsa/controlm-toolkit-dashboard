@@ -1,7 +1,7 @@
 import {
   Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef
 } from '@angular/core';
-import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 
 
 export type FilterType =
@@ -9,24 +9,30 @@ export type FilterType =
   'contains' |
   'equalTo' |
   'greaterThan' |
-  'lessThan';
+  'greaterThanOrEqual' |
+  'lessThan' |
+  'lessThanOrEqual';
 
 export const FilterTypeDisplayLabelsMap: { [key in FilterType]: string} = {
   'none': 'No Filter',
   'contains': 'Contains',
   'equalTo': 'Is Equal To',
-  'greaterThan': 'Is Greater Than',
-  'lessThan': 'Is Less Than',
+  'greaterThan': 'Is Greater Than (>)',
+  'greaterThanOrEqual': 'Is Greater Than Or Equal (>=)',
+  'lessThan': 'Is Less Than (<)',
+  'lessThanOrEqual': 'Is Less Than Or Equal (<=)',
 }
 
 export interface ColumnFilterDef {
   type: FilterType,
+  filterFunc? (item: any, property: string, value: any): boolean
 }
 
 export interface SmartTableFilter {
   columnName: string,
   filterType: FilterType,
   filterArg1?: any;
+  filterFunc? (item: any, property: string, value: any): boolean;
 }
 
 export interface SmartTableCellContext {
@@ -69,7 +75,9 @@ export const TypeToFilterTypeMap: { [key in string]: FilterType[]} = {
     'none',
     'equalTo',
     'greaterThan',
+    'greaterThanOrEqual',
     'lessThan',
+    'lessThanOrEqual',
   ],
   'string': [
     'none',
@@ -80,6 +88,7 @@ export const TypeToFilterTypeMap: { [key in string]: FilterType[]} = {
   'array' : [ 'none' ],
   'object': [ 'none' ],
 }
+
 
 export interface SmartTableOptions {
   columnDefs?: SmartTableColumnOptions[],
@@ -105,7 +114,7 @@ export function BuildTableOptions(
       return {
         columnName: prop,
         filter: columnFilterOverrides[prop] ?? {
-          type: "contains",
+          type: typeof itemValue === 'string' ? 'contains' : 'none',
         },
         searchable: searchable,
         isReference: reference,
@@ -174,6 +183,21 @@ export class SmartTableComponent implements OnInit, OnChanges {
     }
   }
 
+  resetFilters(): void {
+    if (this.activeFilters.length > 0) {
+      if (this.filterForm?.controls) {
+        for (let key in this.filterForm!.controls!) {
+          const control = this.filterForm.get(key);
+          if (control instanceof FormGroup) {
+            control.get('filterArgument')?.setValue(null);
+          }
+        }
+      }
+      this.activeFilters.splice(0, this.activeFilters.length);
+      this.rebuildFilteredItems();
+      this.rebuildCurrentPage();
+    }
+  }
 
   changePageSize(event: any): void {
     this.pageSize = parseInt(event.target.value);
@@ -198,6 +222,25 @@ export class SmartTableComponent implements OnInit, OnChanges {
     return 'text'
   }
 
+  columnFilterChange(columnDef: SmartTableColumnOptions, eventTarget: any): void {
+    if (eventTarget instanceof HTMLSelectElement){
+      //const filterType = eventTarget.value as FilterType;
+      const columnName = columnDef.columnName;
+      const existingFilterIndex = this.activeFilters.findIndex(
+        f => f.columnName === columnName);
+      if (existingFilterIndex === -1) {
+        this.getFilterArgumentControl(columnDef).setValue(null);
+      }
+      else {
+        this.getFilterArgumentControl(columnDef).setValue(null);
+        this.activeFilters.splice(existingFilterIndex, 1);
+      }
+
+      this.rebuildFilteredItems();
+      this.rebuildCurrentPage();
+    }
+  }
+
   containsSearchOnKeyUp(columnDef: SmartTableColumnOptions, filterType: FilterType, event: any): any {
     const columnName = columnDef.columnName;
     const filterArgType = columnDef.type;
@@ -212,6 +255,7 @@ export class SmartTableComponent implements OnInit, OnChanges {
           columnName: columnName,
           filterType: filterType,
           filterArg1: filterArg,
+          filterFunc: columnDef.filter.filterFunc,
         });
       }
       else {
@@ -238,19 +282,30 @@ export class SmartTableComponent implements OnInit, OnChanges {
         for (let index = 0; index < numberOfFilters; index++) {
           const filter = this.activeFilters[index];
           if (filter.filterType === 'contains') {
-            itemMatchesFilters = this.matcherContains(item, filter.columnName, filter.filterArg1);
+            const matcher = filter.filterFunc ?? this.matcherContains;
+            itemMatchesFilters = matcher(item, filter.columnName, filter.filterArg1);
           }
           else if (filter.filterType === 'equalTo') {
-            itemMatchesFilters = this.matcherEquals(item, filter.columnName, filter.filterArg1);
+            const matcher = filter.filterFunc ?? this.matcherEquals;
+            itemMatchesFilters = matcher(item, filter.columnName, filter.filterArg1);
           }
           else if (filter.filterType === 'greaterThan') {
-            itemMatchesFilters = this.matcherGreaterThan(item, filter.columnName, filter.filterArg1);
+            const matcher = filter.filterFunc ?? this.matcherGreaterThan;
+            itemMatchesFilters = matcher(item, filter.columnName, filter.filterArg1);
+          }
+          else if (filter.filterType === 'greaterThanOrEqual') {
+            const matcher = filter.filterFunc ?? this.matcherGreaterThanOrEqual;
+            itemMatchesFilters = matcher(item, filter.columnName, filter.filterArg1);
           }
           else if (filter.filterType === 'lessThan') {
-            itemMatchesFilters = this.matcherLessThan(item, filter.columnName, filter.filterArg1);
+            const matcher = filter.filterFunc ?? this.matcherLessThan;
+            itemMatchesFilters = matcher(item, filter.columnName, filter.filterArg1);
+          }
+          else if (filter.filterType === 'lessThanOrEqual') {
+            const matcher = filter.filterFunc ?? this.matcherLessThanOrEqual;
+            itemMatchesFilters = matcher(item, filter.columnName, filter.filterArg1);
           }
           if (!itemMatchesFilters) {
-            console.info(filter.filterType, filter.columnName, filter.filterArg1, item[filter.columnName]);
             break;
           }
         }
@@ -281,10 +336,22 @@ export class SmartTableComponent implements OnInit, OnChanges {
     return itemValue != null && itemValue > num;
   }
 
+  protected matcherGreaterThanOrEqual(item: any, property: string, value: any): boolean {
+    const num: number = +value;
+    const itemValue = item[property];
+    return itemValue != null && itemValue >= num;
+  }
+
   protected matcherLessThan(item: any, property: string, value: any): boolean {
     const num: number = +value;
     const itemValue = item[property];
     return itemValue != null && itemValue < num;
+  }
+
+  protected matcherLessThanOrEqual(item: any, property: string, value: any): boolean {
+    const num: number = +value;
+    const itemValue = item[property];
+    return itemValue != null && itemValue <= num;
   }
 
   protected rebuildCurrentPage(): void {
@@ -325,8 +392,6 @@ export class SmartTableComponent implements OnInit, OnChanges {
       });
       this.filterForm?.addControl(columnDef.columnName, nested);
     });
-    console.warn('form is', this.filterForm.value)
-    console.warn('displayOptions is', this.displayOptions)
 
     this.items = items;
     this.rebuildFilteredItems();
@@ -334,7 +399,14 @@ export class SmartTableComponent implements OnInit, OnChanges {
   }
 
   getAllowedFilterTypes(columnDef: SmartTableColumnOptions): string[] {
-    return TypeToFilterTypeMap[columnDef.type ?? 'undefined'];
+    let results = TypeToFilterTypeMap[columnDef.type ?? 'undefined'];
+    const override = this.columnFilterOverrides[columnDef.columnName];
+    if (override) {
+      if (!results.includes(override.type)) {
+        results.push(override.type);
+      }
+    }
+    return results;
   }
 
   getFilterTypeControl(columnDef: SmartTableColumnOptions): FormControl {

@@ -5,11 +5,11 @@ import { Subscription } from "rxjs";
 
 
 @Component({
-  selector: 'app-ctm-hosts-dashboard',
-  templateUrl: './ctm-hosts-dashboard.component.html',
-  styleUrls: ['./ctm-hosts-dashboard.component.sass']
+  selector: 'app-ctm-nodes-dashboard',
+  templateUrl: './ctm-nodes-dashboard.component.html',
+  styleUrls: ['./ctm-nodes-dashboard.component.sass']
 })
-export class CtmHostsDashboardComponent implements OnInit {
+export class CtmNodesDashboardComponent implements OnInit {
 
   stats: CtmNodeStat[] | null = null;
   error: any = null;
