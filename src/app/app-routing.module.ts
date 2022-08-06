@@ -35,6 +35,13 @@ const routes: Routes = [
         data: {
           breadcrumbLabel: 'Nodes'
         }
+      },
+      {
+        path: 'folders',
+        loadChildren: () => import('./modules/ctm-folders/ctm-folders.module').then(m => m.CtmFoldersModule),
+        data: {
+          breadcrumbLabel: 'Folders'
+        }
       }
     ],
     data: {

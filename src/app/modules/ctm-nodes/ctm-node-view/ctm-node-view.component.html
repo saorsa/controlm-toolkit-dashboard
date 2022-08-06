@@ -9,7 +9,7 @@
     <mat-card class="mb-4 p-0">
       <nav class="navbar bg-light">
         <b class="ps-3 pe-3">
-          Node
+          Node <span *ngIf="stats?.hosts?.length">(Host Group)</span>
         </b>
       </nav>
       <div class="p-3">{{selectedHost}}</div>
